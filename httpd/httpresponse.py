@@ -1,20 +1,27 @@
 import os
 import sys
+import re
+
+from httprequest import HTTPRequest
 
 class HttpResponse:
-	def __init__(self, **kwargs):
+	def __init__(self, httprequest, **kwargs):
 		self.kwargs = kwargs
+		self.httprequest = httprequest
 
 	def run(self):
-		module = __import__(self.kwargs['module'],globals={}, locals={}, fromlist=[], level=-1)
-		# print modules
-		# print self.kwargs['module']
-		# module = modules[self.kwargs['module']]
-		print module
-		clazz = getattr(module,self.kwargs['clazz'])
-		print dir(clazz)
-		instance = clazz()
+		_path = re.compile(r'/(.*)/(.*)')
+		_module = _path.sub(r'\1', self.httprequest.request['path'])
+		_class = _path.sub(r'\2', self.httprequest.request['path'])
+
+
+		module = __import__(_module ,globals={}, locals={}, fromlist=[], level=-1)
+		reload(module)
+
+		_class = getattr(module,_class)
+
+		instance = _class(self.kwargs)
 		result = instance.run()
 
-		del sys.modules[self.kwargs['module']]
+		del sys.modules[_module]
 		return result
