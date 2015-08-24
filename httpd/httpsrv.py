@@ -44,12 +44,13 @@ class HttpSrv:
 			httpclient = self.queue.get()
 
 			recv = httpclient.connect.recv(4096)
-			httprequest = HTTPRequest(recv)
+			if len(recv):
+				httprequest = HTTPRequest(recv)
 
-			httpersponse = HttpResponse(httprequest, _httpclient=httpclient)
-			resp = httpersponse.run()
+				httpersponse = HttpResponse(httprequest, _httpclient=httpclient)
+				resp = httpersponse.run()
 
-			httpclient.connect.send('HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: %d\r\n\r\n%s' % (len(resp),resp))
+				httpclient.connect.send('HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: %d\r\n\r\n%s' % (len(resp),resp))
 			
 			httpclient.connect.close()
 			self.queue.task_done()
